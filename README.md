@@ -29,6 +29,25 @@ h0 = torch.zeros(2,50) # (batch, units)
 output, hn = rnn(x,h0)
 ```
 
+## Run on local
+
+First, clone the repo by running
+```bash
+git clone git@github.com:ARG-NCTU/ncps.git
+```
+
+Second, run docker by running
+```bash
+source Docker/docker_run.sh
+```
+
+Third, run the example code, for example
+```bash
+cd examples
+```
+```bash
+python3 atari_torch.py
+```
 
 ## Installation
 
