@@ -16,7 +16,7 @@ from ray.rllib.utils.annotations import override
 
 import tensorflow as tf
 from ncps.tf import CfC
-
+import imageio
 
 class ConvCfCModel(RecurrentNetwork):
     """Example of using the Keras functional API to define a RNN model."""
@@ -110,20 +110,37 @@ class ConvCfCModel(RecurrentNetwork):
         return tf.reshape(self._value_out, [-1])
 
 
-def run_closed_loop(algo, config):
+def run_closed_loop(algo, config, record_gif=False, num_episodes=None, training_hours=None):
     env = gym.make(args.env, render_mode="human")
     env = wrap_deepmind(env)
     rnn_cell_size = config["model"]["custom_model_config"]["cell_size"]
     obs = env.reset()
     state = init_state = [np.zeros(rnn_cell_size, np.float32)]
+    frames = []  # To store frames for GIF
+    max_num_episodes = num_episodes
     while True:
+        if record_gif:
+            frames.append(env.render(mode='rgb_array'))  # Collect frame for GIF
         action, state, _ = algo.compute_single_action(
             obs, state=state, explore=False, policy_id="default_policy"
         )
         obs, reward, done, _ = env.step(action)
-        if done:
+        if done and num_episodes is not None and num_episodes > 0:
             obs = env.reset()
             state = init_state
+            if record_gif:
+                # Save frames as GIF
+                episode = max_num_episodes - num_episodes + 1
+                if training_hours is None:
+                    imageio.mimsave(f'rl_gameplay/atari_gameplay_final_episode_{episode}.gif', frames, fps=30)
+                else:
+                    imageio.mimsave(f'rl_gameplay/atari_gameplay_training_time_{training_hours}_hours_episode_{episode}.gif', frames, fps=30)
+                
+                frames = []  # Clear frames after saving
+                if num_episodes and num_episodes > 0:
+                    num_episodes -= 1
+                    if num_episodes == 0:
+                        break
 
 
 ModelCatalog.register_custom_model("cfc", ConvCfCModel)
@@ -134,6 +151,7 @@ if __name__ == "__main__":
     parser.add_argument("--cont", default="")
     parser.add_argument("--render", action="store_true")
     parser.add_argument("--hours", default=4, type=int)
+    parser.add_argument("--num_episodes", type=int, default=1, help="Number of episodes to record")
     args = parser.parse_args()
 
     register_env("atari_env", lambda env_config: wrap_deepmind(gym.make(args.env)))
@@ -170,6 +188,7 @@ if __name__ == "__main__":
     algo = PPO(config=config)
 
     os.makedirs(f"rl_ckpt/{args.env}", exist_ok=True)
+    os.makedirs(f"rl_gameplay", exist_ok=True)
     if args.cont != "":
         algo.load_checkpoint(f"rl_ckpt/{args.env}/checkpoint-{args.cont}")
 
@@ -177,10 +196,13 @@ if __name__ == "__main__":
         run_closed_loop(
             algo,
             config,
+            record_gif=True,
+            num_episodes=args.num_episodes,
         )
     else:
         start_time = time.time()
         last_eval = 0
+        last_record = 0
         while True:
             info = algo.train()
             if time.time() - last_eval > 60 * 5:  # every 5 minutes print some stats
@@ -192,6 +214,17 @@ if __name__ == "__main__":
                 last_eval = time.time()
                 ckpt = algo.save_checkpoint(f"rl_ckpt/{args.env}")
                 print(f"    saved checkpoint '{ckpt}'")
+
+            if time.time() - last_record > 60 * 30:  # every 30 minutes start recording
+                run_closed_loop(
+                    algo,
+                    config,
+                    record_gif=True,
+                    num_episodes=args.num_episodes,
+                    training_hours=round((time.time()-start_time)/60/60, 1),
+                )
+                last_record = time.time()
+                print(f"    recorded game play after {time.time()-start_time:0.1f} minutes")
 
             elapsed = (time.time() - start_time) / 60  # in minutes
             if elapsed > args.hours * 60:

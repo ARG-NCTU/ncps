@@ -45,8 +45,22 @@ Third, run the example code, for example
 ```bash
 cd examples
 ```
+Training with pre-trained method
 ```bash
 python3 atari_torch.py
+```
+
+Training from scratch with ppo policy
+```bash
+python3 atari_ppo.py
+```
+Training from pre-trained model with ppo policy
+```bash
+python3 atari_ppo.py --cont 1
+```
+Inference rl model
+```bash
+python3 atari_ppo.py --cont 1 --render
 ```
 
 ## Installation

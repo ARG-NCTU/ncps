@@ -27,7 +27,7 @@ from tqdm import tqdm
 from ncps.torch import CfC
 from ncps.datasets.torch import AtariCloningDataset
 
-
+import imageio
 class ConvBlock(nn.Module):
     def __init__(self):
         super().__init__()
@@ -110,14 +110,17 @@ def train_one_epoch(model, criterion, optimizer, trainloader):
     pbar.close()
 
 
-def run_closed_loop(model, env, num_episodes=None):
+def run_closed_loop(model, env, num_episodes=None, record=False):
     obs = env.reset()
     device = next(model.parameters()).device
     hx = None  # Hidden state of the RNN
     returns = []
     total_reward = 0
+    frames = []  # List to store frames for GIF
     with torch.no_grad():
         while True:
+            if record:
+                frames.append(env.render(mode='rgb_array'))  # Collect frame for GIF
             # PyTorch require channel first images -> transpose data
             obs = np.transpose(obs, [2, 0, 1]).astype(np.float32)
             # Observation seems to be already normalized, see: https://github.com/mlech26l/ncps/issues/48#issuecomment-1572328370
@@ -138,6 +141,9 @@ def run_closed_loop(model, env, num_episodes=None):
                     # Count down the number of episodes
                     num_episodes = num_episodes - 1
                     if num_episodes == 0:
+                        if record:
+                            # Save frames as GIF
+                            imageio.mimsave('data_atari_seq/atari_gameplay.gif', frames, fps=30)
                         return returns
 
 
@@ -172,4 +178,4 @@ if __name__ == "__main__":
     # Visualize Atari game and play endlessly
     env = gym.make("ALE/Breakout-v5", render_mode="human")
     env = wrap_deepmind(env)
-    run_closed_loop(model, env)
+    run_closed_loop(model, env, num_episodes=1, record=True)

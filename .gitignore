@@ -130,3 +130,5 @@ dmypy.json
 
 # result
 examples/data_atari_seq
+examples/rl_ckpt
+examples/rl_gameplay
