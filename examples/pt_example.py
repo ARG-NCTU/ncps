@@ -81,9 +81,14 @@ trainer = pl.Trainer(
     gradient_clip_val=1,  # Clip gradient to stabilize training
 )
 
+sns.set_style("white")
+plt.figure(figsize=(6, 4))
+legend_handles = wiring.draw_graph(draw_labels=True, neuron_colors={"command": "tab:cyan"})
+plt.legend(handles=legend_handles, loc="upper center", bbox_to_anchor=(1, 1))
+sns.despine(left=True, bottom=True)
+plt.tight_layout()
+plt.savefig("wiring_diagram.png")
 
-# Train the model for 400 epochs (= training steps)
-trainer.fit(learn, dataloader)
 
 # Let's visualize how LTC initialy performs before the training
 sns.set()
@@ -96,6 +101,9 @@ plt.ylim((-1, 1))
 plt.title("Before training")
 plt.legend(loc="upper right")
 plt.savefig("pt_plot2.png")
+
+# Train the model for 400 epochs (= training steps)
+trainer.fit(learn, dataloader)
 
 # How does the trained model now fit to the sinusoidal function?
 sns.set()
