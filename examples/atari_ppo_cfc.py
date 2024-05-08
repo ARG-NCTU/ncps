@@ -132,9 +132,9 @@ def run_closed_loop(algo, config, record_gif=False, num_episodes=None, training_
                 # Save frames as GIF
                 episode = max_num_episodes - num_episodes + 1
                 if training_hours is None:
-                    imageio.mimsave(f'rl_gameplay/atari_gameplay_final_episode_{episode}.gif', frames, fps=30)
+                    imageio.mimsave(f'rl_gameplay/cfc/atari_gameplay_final_episode_{episode}.gif', frames, duration=33)
                 else:
-                    imageio.mimsave(f'rl_gameplay/atari_gameplay_training_time_{training_hours}_hours_episode_{episode}.gif', frames, fps=30)
+                    imageio.mimsave(f'rl_gameplay/cfc/atari_gameplay_training_time_{training_hours}_hours_episode_{episode}.gif', frames, duration=33)
                 
                 frames = []  # Clear frames after saving
                 if num_episodes and num_episodes > 0:
@@ -187,10 +187,10 @@ if __name__ == "__main__":
 
     algo = PPO(config=config)
 
-    os.makedirs(f"rl_ckpt/{args.env}", exist_ok=True)
-    os.makedirs(f"rl_gameplay", exist_ok=True)
+    os.makedirs(f"rl_ckpt/{args.env}/cfc", exist_ok=True)
+    os.makedirs(f"rl_gameplay/cfc", exist_ok=True)
     if args.cont != "":
-        algo.load_checkpoint(f"rl_ckpt/{args.env}/checkpoint-{args.cont}")
+        algo.load_checkpoint(f"rl_ckpt/{args.env}/cfc/checkpoint-{args.cont}")
 
     if args.render:
         run_closed_loop(

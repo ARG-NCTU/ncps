@@ -27,7 +27,7 @@ RUN echo "${USER}:111111" | chpasswd
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys A4B469963BF863CC
 
 RUN apt-get -o Acquire::ForceIPv4=true update && apt-get -yq dist-upgrade \
-    && apt-get -o Acquire::ForceIPv4=true install -yq --no-install-recommends \ 
+    && apt-get -o Acquire::ForceIPv4=true install -yq --no-install-recommends \
     locales \
     cmake \
     unzip \
@@ -50,9 +50,9 @@ RUN apt-get -o Acquire::ForceIPv4=true update && apt-get -yq dist-upgrade \
     python3-setuptools \
     python3-opencv \
     python3-numpy \
-    python3-empy  \
-    python3-dev \ 
-    python3-tk \ 
+    python3-empy \
+    python3-dev \
+    python3-tk \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -63,7 +63,8 @@ RUN pip3 install --upgrade pip setuptools
 RUN pip3 install \
     sphinx \
     sphinx-gallery \
-    numpydoc pandas \
+    numpydoc \
+    pandas \
     loky \
     tqdm \
     distributed \
@@ -75,12 +76,15 @@ RUN pip3 install \
     ncps \
     "ale-py==0.7.4" \
     "ray[rllib]==2.1.0" \
-    "gym[atari,accept-rom-license]==0.23.1"
+    "gym[atari,accept-rom-license]==0.23.1" \
+    pytorch_lightning \
+    matplotlib \
+    seaborn
 
 ##################################### setting ###################################################
 
 RUN chown -R ${USER}:${USER} ${HOME}/
-RUN echo "${USER} ALL=(ALL)  ALL" >> /etc/sudoers
+RUN echo "${USER} ALL=(ALL) ALL" >> /etc/sudoers
 
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=all
